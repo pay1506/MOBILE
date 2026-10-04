@@ -212,8 +212,6 @@ class HomePage extends StatelessWidget {
               ],
             ),
           ),
-
-          // Daftar produk
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(
@@ -222,8 +220,25 @@ class HomePage extends StatelessWidget {
               itemCount: daftarProduk.length,
               itemBuilder: (context, index) {
                 return ProductCard(
-                  product: daftarProduk[index],
-                );
+                      product: daftarProduk[index],
+                      onTap: () async {
+                        final result = await Navigator.pushNamed(
+                          context,
+                          '/detail',
+                          arguments: daftarProduk[index],
+                        );
+
+                        if (result != null && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '${daftarProduk[index].name} sebanyak $result berhasil ditambahkan ke keranjang',
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    );
               },
             ),
           ),
