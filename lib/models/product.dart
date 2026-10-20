@@ -17,6 +17,43 @@ class Product {
     this.description,
   });
 
+  factory Product.fromJson(Map<String, dynamic> json) {
+    // Harga dari DummyJSON berupa USD.
+    // Konversi perkiraan ke rupiah untuk tampilan aplikasi.
+    const kurs = 16000.0;
+
+    return Product(
+      id: (json['id'] as num).toInt(),
+      name: (json['title'] ?? json['name'] ?? 'Produk').toString(),
+      price: (json['price'] as num).toDouble() * kurs,
+      imageUrl: (
+        json['thumbnail'] ??
+        json['image'] ??
+        json['imageUrl'] ??
+        ''
+      ).toString(),
+      category: (json['category'] ?? 'Lainnya').toString(),
+      stock: json['stock'] is num
+          ? (json['stock'] as num).toInt()
+          : 10,
+      description: json['description']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    const kurs = 16000.0;
+
+    return {
+      'id': id,
+      'title': name,
+      'price': price / kurs,
+      'thumbnail': imageUrl,
+      'category': category,
+      'stock': stock,
+      'description': description,
+    };
+  }
+
   String getInfo() {
     return '$name - ${formatRupiah(price)} - Stok: $stock';
   }
