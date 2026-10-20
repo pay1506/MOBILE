@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-
 import '../models/product.dart';
 
 class ProductCard extends StatefulWidget {
   final Product product;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
 
   const ProductCard({
     super.key,
     required this.product,
-    this.onTap,
+    required this.onTap,
   });
 
   @override
@@ -19,185 +18,156 @@ class ProductCard extends StatefulWidget {
 class _ProductCardState extends State<ProductCard> {
   bool isFavorite = false;
 
-  @override
-  void initState() {
-    super.initState();
-    print('initState: ${widget.product.name}');
+  IconData _iconForProduct() {
+    final name = widget.product.name.toLowerCase();
+
+    if (name.contains('laptop')) return Icons.laptop_mac;
+    if (name.contains('mouse')) return Icons.mouse;
+    if (name.contains('keyboard')) return Icons.keyboard;
+    if (name.contains('headset') || name.contains('speaker')) {
+      return Icons.headphones;
+    }
+    if (name.contains('monitor')) return Icons.monitor;
+    if (name.contains('webcam')) return Icons.videocam;
+    if (name.contains('ssd') || name.contains('flashdisk')) {
+      return Icons.storage;
+    }
+    if (name.contains('ram')) return Icons.memory;
+    if (name.contains('charger') || name.contains('powerbank')) {
+      return Icons.battery_charging_full;
+    }
+    if (name.contains('kabel') || name.contains('usb hub')) {
+      return Icons.usb;
+    }
+    if (name.contains('cooling pad')) return Icons.air;
+    if (name.contains('smartphone')) return Icons.smartphone;
+    if (name.contains('tablet')) return Icons.tablet_android;
+    if (name.contains('smartwatch')) return Icons.watch;
+    if (name.contains('mousepad')) return Icons.sports_esports;
+
+    return Icons.devices_other;
   }
 
   @override
   Widget build(BuildContext context) {
-    print('build: ${widget.product.name}');
+    final product = widget.product;
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Stack(
+    final double price = product is DiscountedProduct
+        ? product.hargaFinal
+        : product.price;
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      elevation: 2,
+      child: InkWell(
+        onTap: widget.onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.image,
-                  size: 80,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 90),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.product.name,
+            Expanded(
+              child: Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: Colors.blueGrey.shade50,
+                    child: Icon(
+                      _iconForProduct(),
+                      size: 64,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: IconButton(
+                      tooltip: 'Favorit',
+                      onPressed: () {
+                        setState(() {
+                          isFavorite = !isFavorite;
+                        });
+                      },
+                      icon: Icon(
+                        isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.grey,
+                      ),
+                    ),
+                  ),
+                  if (product is DiscountedProduct)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Diskon ${product.discountPercent.toStringAsFixed(0)}%',
                           style: const TextStyle(
-                            fontSize: 18,
+                            color: Colors.white,
+                            fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 5),
-                        CategoryTag(
-                          category: widget.product.category,
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          formatRupiah(widget.product.price),
-                          style: const TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
                     ),
                   ),
-                ),
-              ],
-            ),
-
-            // Label diskon
-            if (widget.product is DiscountedProduct)
-              Positioned(
-                top: 0,
-                left: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Diskon ${(widget.product as DiscountedProduct).discountPercent.toStringAsFixed(0)}%',
+                  const SizedBox(height: 6),
+                  if (product is DiscountedProduct)
+                    Text(
+                      formatRupiah(product.price),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  Text(
+                    formatRupiah(price),
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
+                      color: Colors.blue,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-              ),
-
-            // Status stok
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: _getStockColor(widget.product.stock),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  widget.product.getStatusStok(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 4),
+                  Text(
+                    product.getStatusStok(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: product.stock == 0
+                          ? Colors.red
+                          : product.stock <= 5
+                              ? Colors.orange
+                              : Colors.green,
+                    ),
                   ),
-                ),
-              ),
-            ),
-
-            // Favorite
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: IconButton(
-                onPressed: () {
-                  setState(() {
-                    isFavorite = !isFavorite;
-                  });
-                },
-                icon: Icon(
-                  isFavorite
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                ),
+                ],
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Color _getStockColor(int stock) {
-    if (stock == 0) {
-      return Colors.red;
-    } else if (stock <= 5) {
-      return Colors.orange;
-    } else {
-      return Colors.green;
-    }
-  }
-
-  @override
-  void dispose() {
-    print('dispose: ${widget.product.name}');
-    super.dispose();
-  }
-}
-
-class CategoryTag extends StatelessWidget {
-  final String category;
-
-  const CategoryTag({
-    super.key,
-    required this.category,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 5,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.deepPurple.shade100,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        category,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
         ),
       ),
     );
